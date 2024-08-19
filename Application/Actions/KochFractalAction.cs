@@ -9,18 +9,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FractalPainting.Application.Actions;
 
-public class KochFractalAction : IApiAction, INeed<Palette>, INeed<IImageSettingsProvider>
+public class KochFractalAction(KochPainter kochPainter) : IApiAction
 {
     private readonly JsonSerializerOptions jsonSerializerOptions =
         new() { Converters = { new FigureJsonConverter() } };
-    private Palette palette = null!;
-    private IImageSettingsProvider imageSettingsProvider = null!;
-
-
-    public void SetDependency(Palette dependency)
-    {
-        palette = dependency;
-    }
 
     public string Endpoint => "/kochFractal";
 
@@ -28,20 +20,8 @@ public class KochFractalAction : IApiAction, INeed<Palette>, INeed<IImageSetting
 
     public int Perform(Stream inputStream, Stream outputStream)
     {
-        var services = new ServiceCollection();
-        services.AddSingleton(palette);
-        services.AddSingleton(imageSettingsProvider);
-        services.AddSingleton<KochPainter>();
-        var sp = services.BuildServiceProvider();
-
-        var painter = sp.GetRequiredService<KochPainter>();
-        var figures = painter.Paint();
+        var figures = kochPainter.Paint();
         JsonSerializer.Serialize(outputStream, figures, options: jsonSerializerOptions);
         return (int)HttpStatusCode.OK;
-    }
-
-    public void SetDependency(IImageSettingsProvider dependency)
-    {
-        imageSettingsProvider = dependency;
     }
 }

@@ -8,5 +8,4 @@ public class DragonSettings
     public float ShiftY { get; set; } = 0;
     public float Scale { get; set; } = (float)(1 / Math.Sqrt(2));
     public int IterationsCount { get; set; } = 20000;
-
 }

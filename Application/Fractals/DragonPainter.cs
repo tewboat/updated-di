@@ -11,20 +11,22 @@ namespace FractalPainting.Application.Fractals;
 public class DragonPainter
 {
     private readonly DragonSettings settings;
-    private readonly float size;
-    private readonly ImageSettings imageSettings;
+    private readonly IImageSettingsProvider imageSettingsProvider;
+    private readonly Palette palette;
 
-    public DragonPainter(DragonSettings settings, IImageSettingsProvider imageSettingsProvider)
+    public DragonPainter(IImageSettingsProvider imageSettingsProvider, DragonSettings settings, Palette palette)
     {
         this.settings = settings;
-        imageSettings = imageSettingsProvider.ImageSettings;
-        size = Math.Min(imageSettings.Width, imageSettings.Height) / 2.1f;
+        this.palette = palette;
+        this.imageSettingsProvider = imageSettingsProvider;
     }
 
     public IReadOnlyCollection<Figure> Paint()
     {
+        var imageSettings = imageSettingsProvider.ImageSettings;
+        var size = Math.Min(imageSettings.Width, imageSettings.Height) / 2.1f;
         var figures = new List<Figure>();
-        figures.Add(new Rectangle(imageSettings.Width, imageSettings.Height, new Point(0, 0), new Color(0, 0, 0)));
+        figures.Add(new Rectangle(imageSettings.Width, imageSettings.Height, new Point(0, 0), palette.BackgroundColor));
         var r = new Random();
         var cosa = (float)Math.Cos(settings.Angle1);
         var sina = (float)Math.Sin(settings.Angle1);
@@ -38,7 +40,7 @@ public class DragonPainter
         {
             figures.Add(new Rectangle(1, 1,
                 new Point((int)(imageSettings.Width / 3f + p.X), (int)(imageSettings.Height / 2f + p.Y)),
-                new Color(255, 255, 0)));
+                palette.PrimaryColor));
             if (r.Next(0, 2) == 0)
                 p = new PointF(scale * (p.X * cosa - p.Y * sina), scale * (p.X * sina + p.Y * cosa));
             else
@@ -48,4 +50,24 @@ public class DragonPainter
 
         return figures;
     }
+}
+
+public interface IDragonPainterFactory
+{
+    DragonPainter Create(DragonSettings settings);
+}
+    
+public class DragonPainterFactory : IDragonPainterFactory
+{
+    private readonly IImageSettingsProvider imageSettingsProvider;
+    private readonly Palette palette;
+
+    public DragonPainterFactory(IImageSettingsProvider imageSettingsProvider, Palette palette)
+    {
+        this.imageSettingsProvider = imageSettingsProvider;
+        this.palette = palette;
+    }
+        
+    public DragonPainter Create(DragonSettings settings)
+        => new(imageSettingsProvider, settings, palette);
 }

@@ -10,16 +10,18 @@ namespace FractalPainting.Application.Fractals;
 public class KochPainter
 {
     private readonly Palette palette;
-    private ImageSettings imageSettings;
+    private readonly IImageSettingsProvider imageSettingsProvider;
 
     public KochPainter(Palette palette, IImageSettingsProvider imageSettingsProvider)
     {
         this.palette = palette;
-        imageSettings = imageSettingsProvider.ImageSettings;
+        this.imageSettingsProvider = imageSettingsProvider;
     }
 
     public IReadOnlyCollection<Figure> Paint()
     {
+        var imageSettings = imageSettingsProvider.ImageSettings;
+        
         var figures = new List<Figure>();
         var bgColor = palette.BackgroundColor;
         figures.Add(new Rectangle(imageSettings.Width, imageSettings.Height, new Point(0, 0),

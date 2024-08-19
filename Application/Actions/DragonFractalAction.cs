@@ -9,12 +9,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FractalPainting.Application.Actions;
 
-public class DragonFractalAction : IApiAction, INeed<IImageSettingsProvider>
+public class DragonFractalAction(IDragonPainterFactory dragonPainterFactory) : IApiAction
 {
     private readonly JsonSerializerOptions jsonSerializerOptions =
         new() { Converters = { new FigureJsonConverter() } };
-    private IImageSettingsProvider imageSettingsProvider = null!;
-        
+
     public string Endpoint => "/dragonFractal";
 
     public string HttpMethod => "POST";
@@ -22,21 +21,11 @@ public class DragonFractalAction : IApiAction, INeed<IImageSettingsProvider>
     public int Perform(Stream inputStream, Stream outputStream)
     {
         var dragonSettings = JsonSerializer.Deserialize<DragonSettings>(inputStream);
-        var services = new ServiceCollection();
-        services.AddSingleton(dragonSettings!);
-        services.AddSingleton(imageSettingsProvider);
-        services.AddSingleton<DragonPainter>();
-        var sp = services.BuildServiceProvider();
 
-        var painter = sp.GetRequiredService<DragonPainter>();
+        var painter = dragonPainterFactory.Create(dragonSettings!);
         var figures = painter.Paint();
         JsonSerializer.Serialize(outputStream, figures, options: jsonSerializerOptions);
 
         return (int)HttpStatusCode.OK;
-    }
-
-    public void SetDependency(IImageSettingsProvider dependency)
-    {
-        imageSettingsProvider = dependency;
     }
 }

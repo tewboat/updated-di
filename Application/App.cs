@@ -15,19 +15,6 @@ internal sealed class App
     private readonly HttpListener httpListener;
     private readonly IReadOnlyDictionary<string, IApiAction> routeActions;
 
-    public App() : this(
-        new IApiAction[]
-        {
-            new DragonFractalAction(),
-            new KochFractalAction(),
-            new UpdateImageSettingsAction(),
-            new GetImageSettingsAction(),
-            new UpdatePaletteSettingsAction(),
-            new GetPaletteSettingsAction()
-        })
-    {
-    }
-
     public App(IEnumerable<IApiAction> actions)
     {
         var actionsArray = actions.ToArray();
